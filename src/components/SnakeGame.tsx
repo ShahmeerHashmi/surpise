@@ -90,30 +90,39 @@ const SnakeGame: React.FC = () => {
   }, [gameStarted, direction]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
+    // Prevent default browser behavior (scrolling, pull-to-refresh)
+    e.preventDefault();
     const touch = e.touches[0];
     setTouchStart({ x: touch.clientX, y: touch.clientY });
   };
 
+  const handleTouchMove = (e: React.TouchEvent) => {
+    // Prevent scrolling while touching the game area
+    e.preventDefault();
+  };
+
   const handleTouchEnd = (e: React.TouchEvent) => {
+    // Prevent default browser behavior
+    e.preventDefault();
+    
     if (!touchStart || !gameStarted) return;
     
     const touch = e.changedTouches[0];
     const deltaX = touch.clientX - touchStart.x;
     const deltaY = touch.clientY - touchStart.y;
-    const minSwipeDistance = 50;
+    const minSwipeDistance = 30; // Reduced for better responsiveness
     
-    if (Math.abs(deltaX) > Math.abs(deltaY)) {
-      // Horizontal swipe
-      if (Math.abs(deltaX) > minSwipeDistance) {
+    // Only process swipe if it's significant enough
+    if (Math.abs(deltaX) > minSwipeDistance || Math.abs(deltaY) > minSwipeDistance) {
+      if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        // Horizontal swipe
         if (deltaX > 0 && direction.x !== -1) {
           changeDirection({ x: 1, y: 0 }); // Right
         } else if (deltaX < 0 && direction.x !== 1) {
           changeDirection({ x: -1, y: 0 }); // Left
         }
-      }
-    } else {
-      // Vertical swipe
-      if (Math.abs(deltaY) > minSwipeDistance) {
+      } else {
+        // Vertical swipe
         if (deltaY > 0 && direction.y !== -1) {
           changeDirection({ x: 0, y: 1 }); // Down
         } else if (deltaY < 0 && direction.y !== 1) {
@@ -157,6 +166,23 @@ const SnakeGame: React.FC = () => {
     return () => clearInterval(gameInterval);
   }, [moveSnake]);
 
+  // Prevent page scrolling when game is active
+  useEffect(() => {
+    if (gameStarted && !gameOver) {
+      // Disable page scrolling
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      
+      return () => {
+        // Re-enable page scrolling
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.width = '';
+      };
+    }
+  }, [gameStarted, gameOver]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-400 via-emerald-500 to-teal-600 flex flex-col items-center justify-center p-4">
       {/* Header */}
@@ -180,13 +206,15 @@ const SnakeGame: React.FC = () => {
         transition={{ duration: 0.5, delay: 0.3 }}
       >
         <div 
-          className="grid gap-1 bg-green-900 p-2 rounded select-none"
+          className="grid gap-1 bg-green-900 p-2 rounded select-none touch-none"
           style={{
             gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)`,
             width: 'min(400px, 90vw)',
-            height: 'min(400px, 90vw)'
+            height: 'min(400px, 90vw)',
+            touchAction: 'none' // Prevent all default touch behaviors
           }}
           onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
         >
           {Array.from({ length: GRID_SIZE * GRID_SIZE }).map((_, index) => {

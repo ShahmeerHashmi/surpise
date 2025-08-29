@@ -213,25 +213,7 @@ const BirthdayCelebration: React.FC = () => {
         </motion.div>
       </motion.div>
 
-      {/* Debug Audio Button - Remove this after testing */}
-      {!isPopped && (
-        <button
-          onClick={async () => {
-            if (audioRef.current) {
-              try {
-                audioRef.current.currentTime = 0;
-                await audioRef.current.play();
-                console.log('Manual audio test successful');
-              } catch (error) {
-                console.error('Manual audio test failed:', error);
-              }
-            }
-          }}
-          className="mb-4 px-4 py-2 bg-blue-500 text-white rounded"
-        >
-          Test Audio 🔊
-        </button>
-      )}
+
 
       {/* Confetti */}
       <AnimatePresence>
